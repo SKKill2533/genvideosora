@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoraGen - Video Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .result.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .result.error {
+            border-left: 4px solid #dc3545;
+            background: #f8d7da;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .video-container {
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #721c24;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #0c5460;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 SoraGen</h1>
+        <p class="subtitle">สร้างวีดีโอด้วย AI ผ่าน OpenAI Sora</p>
+
+        <div id="statusBadge" class="status-badge">กำลังตรวจสอบ...</div>
+
+        <form id="videoForm">
+            <div class="form-group">
+                <label for="prompt">Prompt (คำอธิบายวีดีโอ)</label>
+                <textarea
+                    id="prompt"
+                    name="prompt"
+                    placeholder="ตัวอย่าง: A serene landscape with mountains, flowing river, and sunset in the background, cinematic shot"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="model">Model</label>
+                <select id="model" name="model">
+                    <option value="sora-2">Sora 2 (แนะนำ)</option>
+                    <option value="sora-1.0-turbo">Sora 1.0 Turbo</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="size">ขนาดวีดีโอ</label>
+                    <select id="size" name="size">
+                        <option value="720x1280" selected>720x1280 (HD Vertical) 📱</option>
+                        <option value="1280x720">1280x720 (HD Horizontal)</option>
+                        <option value="1024x1792">1024x1792 (Wide Vertical) 📱</option>
+                        <option value="1792x1024">1792x1024 (Wide Horizontal)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">ระยะเวลา (วินาที)</label>
+                    <select id="duration" name="duration">
+                        <option value="4">4 วินาที</option>
+                        <option value="8" selected>8 วินาที (แนะนำ)</option>
+                        <option value="12">12 วินาที</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" id="generateBtn">สร้างวีดีโอ</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>กำลังสร้างวีดีโอ... กรุณารอสักครู่</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // Check API health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                const badge = document.getElementById('statusBadge');
+
+                if (data.api_key_configured) {
+                    badge.textContent = '✓ API Key พร้อมใช้งาน';
+                    badge.className = 'status-badge status-ok';
+                } else {
+                    badge.textContent = '✗ ยังไม่ได้ตั้งค่า API Key';
+                    badge.className = 'status-badge status-error';
+                }
+            } catch (error) {
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = '✗ เชื่อมต่อ server ไม่ได้';
+                badge.className = 'status-badge status-error';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('videoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = {
+                prompt: form.prompt.value,
+                model: form.model.value,
+                size: form.size.value,
+                duration: parseInt(form.duration.value)
+            };
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('generateBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✓ สร้างวีดีโอสำเร็จ!</h3>
+                        <p>${data.message}</p>
+                        <div class="video-container">
+                            <video controls autoplay>
+                                <source src="${data.video_url}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <a href="${data.video_url}" download class="download-btn">ดาวน์โหลดวีดีโอ</a>
+                    `;
+                    resultDiv.style.display = 'block';
+                } else {
+                    throw new Error(data.detail || 'เกิดข้อผิดพลาด');
+                }
+            } catch (error) {
+                // Error
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>✗ เกิดข้อผิดพลาด</h3>
+                    <p class="error-message">${error.message}</p>
+                    <p class="error-message">กรุณาตรวจสอบ:</p>
+                    <ul class="error-message">
+                        <li>API Key ตั้งค่าถูกต้องแล้วหรือไม่</li>
+                        <li>Model ที่เลือกรองรับ video generation หรือไม่</li>
+                        <li>มี credits เพียงพอใน OpenAI account หรือไม่</li>
+                    </ul>
+                `;
+                resultDiv.style.display = 'block';
+            } finally {
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('generateBtn').disabled = false;
+            }
+        });
+
+        // Check health on page load
+        checkHealth();
+    </script>
+</body>
+</html>
