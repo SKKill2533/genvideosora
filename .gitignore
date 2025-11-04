@@ -28,3 +28,6 @@ Thumbs.db
 
 # Generated videos
 videos/
+
+# Development notes (local only)
+claude.md

@@ -218,6 +218,24 @@
             color: #0c5460;
             font-size: 0.9em;
         }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        .footer .developer {
+            font-weight: 600;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -233,7 +251,7 @@
                 <textarea
                     id="prompt"
                     name="prompt"
-                    placeholder="ตัวอย่าง: A serene landscape with mountains, flowing river, and sunset in the background, cinematic shot"
+                    placeholder="ตัวอย่าง: ทิวทัศน์ภูเขาที่สงบงดงาม มีแม่น้ำไหลผ่าน และพระอาทิตย์ตกดินเป็นฉากหลัง ถ่ายภาพแบบ cinematic"
                     required
                 ></textarea>
             </div>
@@ -276,6 +294,10 @@
         </div>
 
         <div class="result" id="result"></div>
+
+        <div class="footer">
+            <p>พัฒนาด้วย <span class="developer">Claude AI</span> โดย นายสาคร ประทาพันธ์</p>
+        </div>
     </div>
 
     <script>
